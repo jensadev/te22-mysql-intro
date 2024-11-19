@@ -1,10 +1,15 @@
+import dotenv from 'dotenv'
+dotenv.config()
 import express from 'express'
+import pool  from './db.js'
 
 const app = express()
 const port = 3000
 
-app.get('/', (req, res) => {
-    res.send('Hello World!')
+app.get('/', async (req, res) => {
+  const [birds] = await pool.promise().query('SELECT * FROM birds')
+
+  res.json(birds)
 })
 
 app.listen(port, () => {

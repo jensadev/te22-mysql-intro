@@ -51,3 +51,29 @@ const pool = mysql.createPool({
 
 export default pool
 ```
+
+Vi behöver nu en .env-fil:
+```bash
+touch .env
+```
+
+Redigera .env:
+```bash
+DATABASE_HOST=localhost
+DATABASE_USERNAME=root
+DATABASE_PORT=3306
+DATABASE_PASSWORD=secret
+DATABASE_DATABASE=te22_mysql_intro
+```
+
+Vi behöver även en .gitignore:
+```bash
+touch .gitignore
+```
+
+Redigera .gitignore:
+```bash
+node_modules
+.env
+```
+

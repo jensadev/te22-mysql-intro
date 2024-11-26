@@ -26,7 +26,7 @@ app.get("/birds/:id", async (req, res) => {
       JOIN species ON birds.species_id = species.id WHERE birds.id = ?;`,
       [req.params.id],
     )
-  res.json(bird[0])
+  res.json(bird[0]) // ditt jobb är att skapa en res.render med nunjucks här
 })
 
 app.listen(port, () => {

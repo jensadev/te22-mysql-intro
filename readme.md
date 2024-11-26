@@ -2,6 +2,33 @@
 
 Det blev mycket nytt idag, men här är en sammanfattning av hur du startar upp allt med Nodejs. Det är mer eller mindre samma varje gång du startar ett nytt projekt, så när du skrivit allt en 100 ggr så sitter det 🦹.
 
+Vi skapade en databas med fåglar och fågelarter.
+
+mysql> describe birds;
++------------+-----------------+------+-----+---------+----------------+
+| Field      | Type            | Null | Key | Default | Extra          |
++------------+-----------------+------+-----+---------+----------------+
+| id         | bigint unsigned | NO   | PRI | NULL    | auto_increment |
+| species_id | bigint unsigned | YES  |     | NULL    |                |
+| name       | varchar(255)    | YES  |     | NULL    |                |
+| wingspan   | int             | YES  |     | NULL    |                |
++------------+-----------------+------+-----+---------+----------------+
+4 rows in set (0.01 sec)
+
+mysql> describe species;
++--------------+-----------------+------+-----+---------+----------------+
+| Field        | Type            | Null | Key | Default | Extra          |
++--------------+-----------------+------+-----+---------+----------------+
+| id           | bigint unsigned | NO   | PRI | NULL    | auto_increment |
+| name         | varchar(255)    | YES  |     | NULL    |                |
+| latin        | varchar(255)    | YES  |     | NULL    |                |
+| wingspan_min | int             | YES  |     | NULL    |                |
+| wingspan_max | int             | YES  |     | NULL    |                |
++--------------+-----------------+------+-----+---------+----------------+
+5 rows in set (0.00 sec)
+
+Du hittar en sql dump i filen [webbserver.sql](webbserver.sql). Du kan importera den i tableplus eller med kommandot `mysql -u USER -p webbserver < webbserver.sql`.
+
 ## Starta upp projektet
 
 Kör wsl, från din hemkatalog, du kan här byta ut `te22-mysql-intro` mot vad du vill att din mapp ska heta:
@@ -135,4 +162,112 @@ app.get('/', async (req, res) => {
 ```
 
 Detta förutsätter såklart att du har en tabell som heter `birds` i din databas. 
+
+Om vi redigerar routen till namnet `/birds` så följer vi REST-principen och gör det tydligare vad vi får tillbaka, en lista med alla fåglar.
+
+För att använda REST så kan vi även skapa en route för att hämta en specifik fågel:
+
+```javascript
+app.get('/birds/:id', async (req, res) => {
+  const [bird] = await pool.promise().query('SELECT * FROM birds WHERE id = ?', [req.params.id])
+
+  res.json(bird)
+})
+```
+
+Här använder vi :id i routen för att läsa in id:t som skickas med i URL:en. Vi kan sedan använda oss av `req.params.id` för att hämta ut fågeln med det specifika id:t ur databasen.
+
+## Nunjucks och views
+
+För att rendera ut HTML så kan vi använda oss av Nunjucks. Vi kan skapa en mapp som heter views och där lägga våra vyer. Vi kan sedan använda oss av `res.render` för att rendera ut en vy.
+
+För att använda oss av Nunjucks så behöver vi installera `nunjucks`:
+
+```bash
+npm i nunjucks
+```
+
+Vi behöver också uppdatera vårt dev script i package.json så att vi lyssnar i ändringar på fler filtyper:
+
+```json
+"dev": "nodemon -e js,html,njk,json,css ./server.js"
+```
+
+Vi behöver sedan konfigurera Nunjucks i server.js:
+
+```javascript
+import nunjucks from 'nunjucks'
+
+nunjucks.configure('views', {
+  autoescape: true,
+  express: app
+})
+```
+
+## Views
+
+Skapa en mapp som heter views och en fil som heter layout.njk:
+Använd dig av Emmet och skriv `html:5` för att få en grundstruktur på din HTML-fil.
+
+```html
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ title }}</title>
+</head>
+<body>
+  {% block content %}{% endblock %}
+</body>
+</html>
+```
+
+Skapa en fil som heter index.njk:
+```html
+{% extends "layout.njk" %}
+
+{% block content %}
+  <h1>{{ title }}</h1>
+  <p>{{ message }}</p>
+{% endblock %}
+```
+
+## Birds och bird
+
+Här är din uppgift att skapa en birds.njk som du använder för att visa alla fåglar.
+
+Sidan ska använda en nunjucks loop för att loopa igenom alla fåglar och visa upp dem. Det ska gå att klicka på varje fågel för att komma till en sida som visar mer information om den specifika fågeln.
+
+[Nunjucks for loop](https://mozilla.github.io/nunjucks/templating.html#for)
+
+Länkarna skriver ni ut i loopen och där får ni använda href="/birds/{{ data från databasen }}.
+
+### Router
+
+GET /birds
+GET /birds/:id
+
+## CRUD
+
+När vi jobbar med data och databaser så pratar vi ofta om CRUD, Create, Read, Update och Delete. Det är de fyra mest grundläggande operationerna som vi kan göra mot en databas.
+
+Det är dock inte alltid som vi behöver alla fyra och som vanligast så är inte heller alla fyra tillgängliga för alla användare. Det är också så att de inte nödvändigtvis skapas i den ordningen, utan det är mer en beskrivning av vad vi kan göra.
+
+### Read
+
+Vi har redan gjort en Read-operation, vi har hämtat ut alla fåglar och en specifik fågel.
+
+Read görs med en GET-request och vi kan använda oss av en query för att hämta ut data från databasen. Vi väljer sedan data med en SELECT-query.
+
+För att hämta en specifik rad ur tabellen så använder vi oss av WHERE och anger vilket id vi vill hämta. Id't vi vill hämta skickas med url:en eller en query och finns då tillgänglig i request-objektet.
+
+### Create
+
+För att skapa en ny fågel så kan vi använda oss av en POST-request. Vi kan skapa en form i vår vy som skickar med informationen till en ny route.
+
+### Update
+
+### Delete
+
 

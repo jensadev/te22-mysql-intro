@@ -1,33 +1,33 @@
 import "dotenv/config"
 import express from "express"
-import pool from "./db.js"
+import nunjucks from "nunjucks"
+import morgan from "morgan"
+import bodyParser from "body-parser"
+
+import birdsRouter from "./routes/birds.js"
 
 const app = express()
 const port = 3000
 
-app.get("/birds", async (req, res) => {
-  // const [birds] = await pool.promise().query('SELECT * FROM birds')
-  const [birds] = await pool
-    .promise()
-    .query(
-      `SELECT birds.*, species.name AS species 
-      FROM birds 
-      JOIN species ON birds.species_id = species.id;`,
-    )
-  res.json(birds)
+nunjucks.configure("views", {
+  autoescape: true,
+  express: app,
 })
 
-app.get("/birds/:id", async (req, res) => {
-  const [bird] = await pool
-    .promise()
-    .query(
-      `SELECT birds.*, species.name AS species 
-      FROM birds 
-      JOIN species ON birds.species_id = species.id WHERE birds.id = ?;`,
-      [req.params.id],
-    )
-  res.json(bird[0]) // ditt jobb är att skapa en res.render med nunjucks här
+app.use(morgan("dev"))
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json());
+
+app.use(express.static("public"))
+
+app.get("/", async (req, res) => {
+  res.render("index.njk", {
+    title: "Hello World",
+    message: "Hello World",
+  })
 })
+
+app.use("/birds", birdsRouter)
 
 app.listen(port, () => {
   console.log(`Example app listening at http://localhost:${port}`)

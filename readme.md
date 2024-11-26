@@ -4,6 +4,7 @@ Det blev mycket nytt idag, men här är en sammanfattning av hur du startar upp 
 
 Vi skapade en databas med fåglar och fågelarter.
 
+```
 mysql> describe birds;
 +------------+-----------------+------+-----+---------+----------------+
 | Field      | Type            | Null | Key | Default | Extra          |
@@ -14,7 +15,9 @@ mysql> describe birds;
 | wingspan   | int             | YES  |     | NULL    |                |
 +------------+-----------------+------+-----+---------+----------------+
 4 rows in set (0.01 sec)
+```
 
+```
 mysql> describe species;
 +--------------+-----------------+------+-----+---------+----------------+
 | Field        | Type            | Null | Key | Default | Extra          |
@@ -26,6 +29,7 @@ mysql> describe species;
 | wingspan_max | int             | YES  |     | NULL    |                |
 +--------------+-----------------+------+-----+---------+----------------+
 5 rows in set (0.00 sec)
+```
 
 Du hittar en sql dump i filen [webbserver.sql](webbserver.sql). Du kan importera den i tableplus eller med kommandot `mysql -u USER -p webbserver < webbserver.sql`.
 

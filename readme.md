@@ -276,6 +276,29 @@ I båda fallen med våra tabeller så behöver vi inte skicka med id:t, det skö
 
 Vi kommer också att testköra create frågor med tableplus för att se att det fungerar.
 
+#### Body parser
+
+För att du ska kunna använda formulärdata så måste du ha en body parser.
+
+Installera body-parser:
+```bash
+npm i body-parser morgan
+```
+
+Redigera sedan server.js:
+```javascript
+import morgan from "morgan"
+import bodyParser from "body-parser"
+
+...
+
+app.use(morgan("dev"))
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json());
+```
+
+Nu går det att komma åt formulärdata i `req.body`.
+
 #### Ny art 
 
 För att skapa en ny species så behöver vi routa till det, för att följa rest så kan vi använda oss av /species, där vi följer samma princip som för birds.

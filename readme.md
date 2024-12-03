@@ -266,6 +266,115 @@ För att hämta en specifik rad ur tabellen så använder vi oss av WHERE och an
 
 För att skapa en ny fågel så kan vi använda oss av en POST-request. Vi kan skapa en form i vår vy som skickar med informationen till en ny route.
 
+För att skapa en species så krävs det ingen extra data från tabellerna, men det skiljer sig för birds då vi faktiskt behöver en species_id för att skapa en ny fågel.
+
+I båda fallen med våra tabeller så behöver vi inte skicka med id:t, det sköter databasen själv. Vi kan använda oss av auto_increment för att skapa ett nytt id.
+
+Vi kommer också att testköra create frågor med tableplus för att se att det fungerar.
+
+#### Ny art 
+
+För att skapa en ny species så behöver vi routa till det, för att följa rest så kan vi använda oss av /species, där vi följer samma princip som för birds.
+
+* GET /species - Hämta alla arter
+* GET /species/:id - Hämta en specifik art
+* GET /species/new - Formulär för att skapa en ny art
+* POST /species - Skapa en ny art
+
+Din uppgift är att skapa routesen för species. Här kommer informationen som vi behöver för att skapa en ny art.
+
+Skapa en ny template för formuläret, `species_form.njk`, som du sedan renderar ut i din route. Formuläret ska skicka en POST-request till /species.
+
+```html
+<form action="/species" method="POST">
+  <label for="name">Name</label>
+  <input type="text" name="name" id="name">
+  <label for="latin">Latin</label>
+  <input type="text" name="latin" id="latin">
+  <label for="wingspan_min">Wingspan min</label>
+  <input type="number" name="wingspan_min" id="wingspan_min">
+  <label for="wingspan_max">Wingspan max</label>
+  <input type="number" name="wingspan_max" id="wingspan_max">
+  <button type="submit">Submit</button>
+</form>
+```
+
+Formuläret tar emot samtlig data från användaren som behövs för att skapa en ny art. När formuläret skickas så skickas det till /species och där kan vi sedan använda oss av `req.body` för att hämta ut datan.
+
+```javascript
+app.post('/species', async (req, res) => {
+  const { name, latin, wingspan_min, wingspan_max } = req.body
+
+  const [result] = await pool.promise().query('INSERT INTO species (name, latin, wingspan_min, wingspan_max) VALUES (?, ?, ?, ?)', [name, latin, wingspan_min, wingspan_max])
+
+  res.json(result)
+})
+```
+
+Här är det viktigt att komma ihåg att vi inte ska skicka med id:t, det sköter databasen själv. Vi kan sedan använda oss av `res.json` för att skicka tillbaka resultatet av vår query (detta är dock mer av en test). Vi kan sedan skicka användaren vidare till en annan vy eller en annan route.
+
+```js
+res.redirect('/species')
+```
+
+Med det på plats så kan nu användaren skapa ny arter, nästa steg är att använda sig av den informationen för att skapa nya fåglar.
+
+#### Ny fågel
+
+För att skapa en ny fågel så behöver vi en species_id, det är en referens till vilken art fågeln tillhör. Vi kan använda oss av en select i formuläret för att välja vilken art fågeln tillhör.
+
+Det viktiga här är att i din GET /birds/new så skickar du med informationen om alla arter som finns i databasen. Detta gör du genom att hämta ut alla arter och skicka med dem till din vy.
+
+```javascript
+app.get('/birds/new', async (req, res) => {
+  const [species] = await pool.promise().query('SELECT * FROM species')
+
+  res.render('birds_form.njk', { species })
+})
+```
+
+I din vy så kan du sedan använda dig av en select för att visa upp alla arter som finns i databasen.
+
+```html
+<form action="/birds" method="POST">
+  <label for="name">Name</label>
+  <input type="text" name="name" id="name">
+  <label for="wingspan">Wingspan</label>
+  <input type="number" name="wingspan" id="wingspan">
+  <label for="species_id">Species</label>
+  <select name="species_id" id="species_id">
+    <option value="1">Art 1</option>
+    <option value="2">Art 2</option>
+    <option value="3">Art 3</option>
+  </select>
+  <button type="submit">Submit</button>
+</form>
+```
+
+Formuläret skickar med species_id, name och wingspan till /birds. Vi kan sedan använda oss av `req.body` för att hämta ut datan.
+
+```javascript
+app.post('/birds', async (req, res) => {
+  const { name, wingspan, species_id } = req.body
+
+  const [result] = await pool.promise().query('INSERT INTO birds (name, wingspan, species_id) VALUES (?, ?, ?)', [name, wingspan, species_id])
+
+  res.json(result)
+})
+```
+
+När en ny fågel skapas så skickas användaren vidare till en annan vy eller en annan route.
+
+#### Förbättringar
+
+Det går också att låta användaren skapa en art direkt när hen skapar en fågel, det kräver dock att en fråga körs för att skapa en ny art och sedan en fråga för att skapa en ny fågel. Det kan absolut vara en bra övning att prova att skapa.
+
+#### Säkerhet
+
+När vi jobbar med formulär så är det viktigt att tänka på säkerheten. Det är viktigt att validera datan som skickas in och att inte lita på att användaren skickar in korrekt data.
+
+Vi kommer att gå igenom detta senare under kursen för det är ett viktigt och stort ämne.
+
 ### Update
 
 ### Delete

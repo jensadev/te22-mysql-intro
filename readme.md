@@ -359,6 +359,7 @@ Formuläret skickar med species_id, name och wingspan till /birds. Vi kan sedan 
 
 ```javascript
 app.post('/birds', async (req, res) => {
+  console.log(req.body)
   const { name, wingspan, species_id } = req.body
 
   const [result] = await pool.promise().query('INSERT INTO birds (name, wingspan, species_id) VALUES (?, ?, ?)', [name, wingspan, species_id])
